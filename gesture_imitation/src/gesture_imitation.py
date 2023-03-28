@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import random
 import sys
 import csv
 import rospy
@@ -35,15 +36,13 @@ class image_converter:
 
 
 if __name__ == '__main__':
-
-
-    rospy.loginfo("Simple questions launched, waiting for the services to initialized!")
+    rospy.loginfo("Gesture imitation launched, waiting for the services to initialized!")
     
     # define the ros service
     speechSay = rospy.ServiceProxy('/qt_robot/speech/say', speech_say)
     recognize = rospy.ServiceProxy('/qt_robot/speech/recognize', speech_recognize)
-    rospy.init_node('simple_questions_node')
-    rospy.loginfo("simple_questions_node started!")
+    rospy.init_node('gesture_imitation_node')
+    rospy.loginfo("gesture_imitation_node started!")
 
     # block/wait for ros service
     rospy.wait_for_service('/qt_robot/speech/say')
@@ -52,52 +51,25 @@ if __name__ == '__main__':
     ic = image_converter()
     
     # Fetch the questions 
-    path = "/home/qtrobot/catkin_ws/src/QtRobotProject/simple_questions/test.csv"
-    rospy.loginfo("Fetching questions from: %s", path)
-    questions = []
-    answers = []
+    rospy.loginfo("Selecting gesture:")
+    allGestures = ["test1","test2","test3","test4","test5","test6"]
+    gestures = []
     
-    try:
-        with open(path, 'r') as file:
-            csvreader = csv.reader(file)
-            for row in csvreader:
-                first = True
-                temp = []
-                for column in row:
-                    if first:
-                        print(column)
-                        questions.append(column)
-                        first = False
-                    else:
-                        temp.append(column)
-                answers.append(temp)
-                print(temp)
-               
-    except IOError:
-        rospy.loginfo("Unable to find or open the file: %s", path)
-        sys.exit(1)
+    for i in range(3):
+        rng = random.randrange(len(allGestures))
+        gestures.append(allGestures[rng])
+        allGestures.pop(rng)
     
-    if not questions:
-        rospy.loginfo("No data found in the file")
-        sys.exit(1)
-    
-    rospy.loginfo("Questions fetched, found: %i", len(questions))
-                  
+    rospy.loginfo("Gestures selected !")
+
     try:
         # call a ros service with text message
         rospy.loginfo("Explaining rules !")
-        # speechSay("Je vais maintenant te demander de répondre au questions que je vais te poser.")
+        # speechSay("Je vais te montrer des mouvements et tu dois les imiter.")
         score = 0
         interaction = 0
-        for i in range(len(questions)):
-            question = questions[i]
-            rospy.loginfo("Reading question: %s", question)
-            rospy.loginfo("Possible answers: %s", answers[i])
-            # speechSay(question)
-            rospy.loginfo("test ######### %s", answers[i])
-            resp = recognize("fr_FR", [], 10)
-            rospy.loginfo("Words found: %s", resp.transcript)
-            
+        for i in range(len(gestures)):
+            rospy.loginfo("Gesture: %s", gestures[i])
             
             if any(answer in resp.transcript for answer in answers[i]):
                 #speechSay("Super c'est la bonne réponse")
