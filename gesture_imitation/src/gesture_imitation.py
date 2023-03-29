@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import random
 import sys
 import csv
 import rospy

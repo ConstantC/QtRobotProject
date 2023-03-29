@@ -7,7 +7,7 @@ from qt_vosk_app.srv import *
 
 
 
-if __name__ == '__main__':
+def simpleQuestions(questionsAnswers):
 
     rospy.loginfo("Simple questions launched, waiting for the services to initialized!")
     
@@ -22,55 +22,28 @@ if __name__ == '__main__':
     rospy.wait_for_service('/qt_robot/speech/recognize')
     rospy.loginfo("Services initiated")
     
-    # Fetch the questions 
-    path = "/home/qtrobot/catkin_ws/src/QtRobotProject/simple_questions/test.csv"
-    rospy.loginfo("Fetching questions from: %s", path)
-    questions = []
-    answers = []
-    
-    try:
-        with open(path, 'r') as file:
-            csvreader = csv.reader(file)
-            for row in csvreader:
-                first = True
-                temp = []
-                for column in row:
-                    if first:
-                        print(column)
-                        questions.append(column)
-                        first = False
-                    else:
-                        temp.append(column)
-                answers.append(temp)
-                print(temp)
-               
-    except IOError:
-        rospy.loginfo("Unable to find or open the file: %s", path)
-        sys.exit(1)
-    
-    if not questions:
-        rospy.loginfo("No data found in the file")
-        sys.exit(1)
-    
-    rospy.loginfo("Questions fetched, found: %i", len(questions))
                   
     try:
+
         # call a ros service with text message
         rospy.loginfo("Explaining rules !")
         speechSay("Je vais maintenant te demander de répondre au questions que je vais te poser.")
         score = 0
         interaction = 0
-        for i in range(len(questions)):
-            question = questions[i]
+        for i in range(len(questionsAnswers)):
+            question = questionsAnswers[i][0]
+            answers = []
+            for j in range(1, len(questionsAnswers[i])):
+                answers.append(questionsAnswers[i][j])
+
             rospy.loginfo("Reading question: %s", question)
-            rospy.loginfo("Possible answers: %s", answers[i])
+            rospy.loginfo("Possible answers: %s", answers)
             speechSay(question)
-            rospy.loginfo("test ######### %s", answers[i])
             resp = recognize("fr_FR", [], 10)
             rospy.loginfo("Words found: %s", resp.transcript)
             
             
-            if any(answer in resp.transcript for answer in answers[i]):
+            if any(answer in resp.transcript for answer in answers):
                 speechSay("Super c'est la bonne réponse")
                 rospy.loginfo("Acceptable answer")
                 score += 1
@@ -100,5 +73,8 @@ if __name__ == '__main__':
         rospy.loginfo("The answers are %s pourcent right !", finalScore)
     except KeyboardInterrupt:
         pass
+    
+    return finalScore
 
-    rospy.loginfo("finsihed!")
+simpleQuestions([['De quelle couleur est la banane ?', 'jaune','vert'], ['De quelle couleur est la pomme ?', 'rouge','vert']])
+rospy.loginfo("finsihed!")
