@@ -75,5 +75,6 @@ def gesturesImitation(gesture):
     except KeyboardInterrupt:
         pass
 
-gesturesImitation('wave')
+rospy.loginfo(str(sys.argv[1]))
+gesturesImitation(str(sys.argv[1]))
 rospy.loginfo("finsihed!")
